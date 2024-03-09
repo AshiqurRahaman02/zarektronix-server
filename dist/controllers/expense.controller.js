@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteExpense = exports.updateExpenseStatus = exports.getAllExpenses = exports.getUserExpenses = exports.addExpense = void 0;
+exports.deleteExpense = exports.updateExpenseStatus = exports.updateExpense = exports.getAllExpenses = exports.getUserExpenses = exports.addExpense = void 0;
 const expense_model_1 = __importDefault(require("../models/expense.model"));
 const notification_model_1 = __importDefault(require("../models/notification.model"));
 const addExpense = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -39,7 +39,7 @@ const addExpense = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(201).json({
             isError: false,
             message: "Expense added successfully",
-            expense
+            expense,
         });
     }
     catch (error) {
@@ -67,10 +67,9 @@ const getUserExpenses = (req, res) => __awaiter(void 0, void 0, void 0, function
         }
         const query = filter ? Object.assign({ userId }, filter) : userId;
         const expenses = yield expense_model_1.default.find(query).populate({
-            path: 'userId',
-            select: 'name'
+            path: "userId",
+            select: "name",
         });
-        ;
         res.status(200).json({ isError: false, expenses });
     }
     catch (error) {
@@ -88,8 +87,8 @@ const getAllExpenses = (req, res) => __awaiter(void 0, void 0, void 0, function*
             filter.status = { $in: statuses };
         }
         const expenses = yield expense_model_1.default.find(filter).populate({
-            path: 'userId',
-            select: 'name'
+            path: "userId",
+            select: "name",
         });
         res.status(200).json({ isError: false, expenses });
     }
@@ -98,12 +97,60 @@ const getAllExpenses = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getAllExpenses = getAllExpenses;
-const updateExpenseStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateExpense = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
     try {
         const { id } = req.params;
-        const { status, requiredText } = req.body;
+        const { name, date, description, amount, category, receiptsUrls } = req.body;
         const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c._id;
+        if (!userId) {
+            return res.status(500).json({
+                isError: true,
+                message: "Internal Server Error",
+            });
+        }
+        const expense = yield expense_model_1.default.findOne({ _id: id });
+        if (!expense) {
+            return res
+                .status(404)
+                .json({ isError: true, message: "Expense not found" });
+        }
+        if (expense.userId.toString() !== userId.toString()) {
+            return res
+                .status(403)
+                .json({ isError: true, message: "Permission denied" });
+        }
+        if (expense.status !== "pending" &&
+            expense.status !== "information-required") {
+            res.status(403).json({
+                isError: true,
+                message: "Cannot update approved or rejected expenses",
+            });
+            return;
+        }
+        const updatedExpense = yield expense_model_1.default.findOneAndUpdate({ _id: id }, { name, date, description, amount, category, receiptsUrls }, { new: true });
+        if (!updatedExpense) {
+            return res.status(500).json({
+                isError: true,
+                message: "Failed to update expense",
+            });
+        }
+        res.status(200).json({
+            isError: false,
+            message: "Expense updated successfully",
+        });
+    }
+    catch (error) {
+        res.status(500).json({ isError: true, message: "Internal server error" });
+    }
+});
+exports.updateExpense = updateExpense;
+const updateExpenseStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
+    try {
+        const { id } = req.params;
+        const { status, requiredText } = req.body;
+        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d._id;
         if (!userId) {
             return res.status(500).json({
                 isError: true,

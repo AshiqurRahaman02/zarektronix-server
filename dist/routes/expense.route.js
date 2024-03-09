@@ -10,6 +10,7 @@ const expenseRouter = express_1.default.Router();
 expenseRouter.post("/add-expense", expense_controller_1.addExpense);
 expenseRouter.get("/get-user-expenses", expense_controller_1.getUserExpenses);
 expenseRouter.get("/get-all-expenses", authorization_middleware_1.verifyUserType, expense_controller_1.getAllExpenses);
+expenseRouter.put("/update-expense/:id", expense_controller_1.updateExpense);
 expenseRouter.put("/update-expense-status/:id", authorization_middleware_1.verifyUserType, expense_controller_1.updateExpenseStatus);
 expenseRouter.delete("/delete-record/:id", expense_controller_1.deleteExpense);
 exports.default = expenseRouter;

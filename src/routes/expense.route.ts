@@ -4,6 +4,7 @@ import {
 	deleteExpense,
 	getAllExpenses,
 	getUserExpenses,
+	updateExpense,
 	updateExpenseStatus,
 } from "../controllers/expense.controller";
 import { verifyToken } from "../middlewares/authentication.middlewares";
@@ -14,6 +15,7 @@ const expenseRouter = express.Router();
 expenseRouter.post("/add-expense", addExpense);
 expenseRouter.get("/get-user-expenses", getUserExpenses);
 expenseRouter.get("/get-all-expenses", verifyUserType, getAllExpenses);
+expenseRouter.put("/update-expense/:id", updateExpense);
 expenseRouter.put(
 	"/update-expense-status/:id",
 	verifyUserType,

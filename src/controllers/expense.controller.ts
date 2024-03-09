@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import ExpenseModel from "../models/expense.model";
+import ExpenseModel, { IExpense } from "../models/expense.model";
 import NotificationModel from "../models/notification.model";
 
 export const addExpense = async (req: Request, res: Response) => {
 	try {
-		const { name, date, description, amount, category, receiptsUrls } = req.body;
+		const { name, date, description, amount, category, receiptsUrls } =
+			req.body;
 		const userId = req.user?._id;
 		if (!userId) {
 			return res.status(500).json({
@@ -19,7 +20,7 @@ export const addExpense = async (req: Request, res: Response) => {
 			description,
 			amount,
 			category,
-			receiptsUrls:[...receiptsUrls],
+			receiptsUrls: [...receiptsUrls],
 			userId,
 		});
 
@@ -28,10 +29,10 @@ export const addExpense = async (req: Request, res: Response) => {
 		res.status(201).json({
 			isError: false,
 			message: "Expense added successfully",
-			expense
+			expense,
 		});
 	} catch (error) {
-		console.log(error)
+		console.log(error);
 		res.status(500).json({ isError: true, message: "Internal server error" });
 	}
 };
@@ -54,12 +55,11 @@ export const getUserExpenses = async (req: Request, res: Response) => {
 			});
 		}
 
-
 		const query = filter ? { userId, ...filter } : userId;
-        const expenses = await ExpenseModel.find(query).populate({
-			path: 'userId',
-			select: 'name'
-		});;
+		const expenses = await ExpenseModel.find(query).populate({
+			path: "userId",
+			select: "name",
+		});
 
 		res.status(200).json({ isError: false, expenses });
 	} catch (error) {
@@ -78,11 +78,72 @@ export const getAllExpenses = async (req: Request, res: Response) => {
 		}
 
 		const expenses = await ExpenseModel.find(filter).populate({
-			path: 'userId',
-			select: 'name'
+			path: "userId",
+			select: "name",
 		});
 
 		res.status(200).json({ isError: false, expenses });
+	} catch (error) {
+		res.status(500).json({ isError: true, message: "Internal server error" });
+	}
+};
+
+export const updateExpense = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const { name, date, description, amount, category, receiptsUrls } =
+			req.body;
+
+		const userId = req.user?._id;
+		if (!userId) {
+			return res.status(500).json({
+				isError: true,
+				message: "Internal Server Error",
+			});
+		}
+
+		const expense = await ExpenseModel.findOne({ _id: id });
+
+		if (!expense) {
+			return res
+				.status(404)
+				.json({ isError: true, message: "Expense not found" });
+		}
+
+		if (expense.userId.toString() !== userId.toString()) {
+			return res
+				.status(403)
+				.json({ isError: true, message: "Permission denied" });
+		}
+
+		if (
+			expense.status !== "pending" &&
+			expense.status !== "information-required"
+		) {
+			res.status(403).json({
+				isError: true,
+				message: "Cannot update approved or rejected expenses",
+			});
+			return;
+		}
+
+		const updatedExpense = await ExpenseModel.findOneAndUpdate(
+			{ _id: id },
+			{ name, date, description, amount, category, receiptsUrls },
+			{ new: true }
+		);
+
+		if (!updatedExpense) {
+			return res.status(500).json({
+				isError: true,
+				message: "Failed to update expense",
+			});
+		}
+
+		res.status(200).json({
+			isError: false,
+			message: "Expense updated successfully",
+		});
 	} catch (error) {
 		res.status(500).json({ isError: true, message: "Internal server error" });
 	}
@@ -113,8 +174,13 @@ export const updateExpenseStatus = async (req: Request, res: Response) => {
 		}
 
 		// Send notification to the user if the status has changed
-			await sendNotification(expense.userId, id,expense.name, status, requiredText);
-		
+		await sendNotification(
+			expense.userId,
+			id,
+			expense.name,
+			status,
+			requiredText
+		);
 
 		res.status(200).json({
 			isError: false,
