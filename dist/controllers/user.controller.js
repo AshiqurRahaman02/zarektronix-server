@@ -36,7 +36,7 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getUser = getUser;
 const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, name } = req.body;
+    const { email, password, name, userType } = req.body;
     try {
         let user = yield user_model_1.default.findOne({ email });
         let firstName = name.split(" ")[0].toLowerCase();
@@ -50,7 +50,7 @@ const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         bcrypt_1.default.hash(password, 5, (err, hash) => __awaiter(void 0, void 0, void 0, function* () {
             if (err)
                 throw err;
-            const user = new user_model_1.default({ email, password: hash, name, tag });
+            const user = new user_model_1.default({ email, password: hash, name, tag, userType });
             yield user.save();
             res.status(201).json({
                 isError: false,

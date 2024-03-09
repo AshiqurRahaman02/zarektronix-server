@@ -20,9 +20,11 @@ dotenv_1.default.config();
 const jwtSecretKey = process.env.jwt_secret_key;
 const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const token = (_a = req.header('Authorization')) === null || _a === void 0 ? void 0 : _a.split(' ')[0];
+    const token = (_a = req.header("Authorization")) === null || _a === void 0 ? void 0 : _a.split(" ")[0];
     if (!token) {
-        return res.status(401).json({ isError: true, message: 'No token, authorization denied' });
+        return res
+            .status(401)
+            .json({ isError: true, message: "No token, authorization denied" });
     }
     try {
         const decoded = jsonwebtoken_1.default.verify(token, jwtSecretKey);
@@ -30,14 +32,16 @@ const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         // Check if the user exists
         const user = yield user_model_1.default.findById(userId);
         if (!user) {
-            return res.status(401).json({ isError: true, message: 'Unauthorized' });
+            return res
+                .status(401)
+                .json({ isError: true, message: "Unauthorized" });
         }
         // Attach the user to the request object
         req.user = user;
         next();
     }
     catch (err) {
-        res.status(401).json({ isError: true, message: 'Invalid token', err });
+        res.status(401).json({ isError: true, message: "Invalid token", err });
     }
 });
 exports.verifyToken = verifyToken;

@@ -4,7 +4,10 @@ import fileupload from "express-fileupload";
 import bodyParser from "body-parser";
 
 import userRouter from "./routes/user.route";
-import recordRouter from "./routes/record.route";
+import expenseRouter from "./routes/expense.route";
+import { verifyToken } from "./middlewares/authentication.middlewares";
+import notificationRouter from "./routes/notification.route";
+import imageRouter from "./routes/image.route";
 
 const app = express();
 
@@ -22,10 +25,12 @@ app.use(
 	})
 );
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json({ limit: '10000mb' }));
+app.use(bodyParser.json({ limit: "100mb" }));
 
 // Routers
 app.use("/user", userRouter);
-app.use("/record", recordRouter);
+app.use("/expense", verifyToken, expenseRouter);
+app.use("/notification",verifyToken, notificationRouter);
+app.use("/image", verifyToken, imageRouter)
 
 export default app;

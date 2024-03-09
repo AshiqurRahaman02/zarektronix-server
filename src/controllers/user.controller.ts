@@ -26,7 +26,7 @@ export const getUser = async (req: Request, res: Response) => {
 };
 
 export const userRegister = async (req: Request, res: Response) => {
-	const { email, password, name } = req.body;
+	const { email, password, name, userType } = req.body;
 	try {
 		let user = await UserModel.findOne({ email });
 		let firstName = name.split(" ")[0].toLowerCase();
@@ -39,7 +39,7 @@ export const userRegister = async (req: Request, res: Response) => {
 		}
 		bcrypt.hash(password, 5, async (err:any, hash:any) => {
 			if (err) throw err;
-			const user = new UserModel({ email, password: hash, name, tag });
+			const user = new UserModel({ email, password: hash, name, tag, userType });
 			await user.save();
 			res.status(201).json({
 				isError: false,

@@ -1,3 +1,3 @@
-# EKSAQ Audio Recorder Server
+# Expense Claim Management Server
 
-### The EKSAQ Audio Recorder Server handles all server-side tasks of The EKSAQ Audio Recorder App.
+### The Expense Claim Management Server handles all server-side tasks of The Expense Claim Management App.
