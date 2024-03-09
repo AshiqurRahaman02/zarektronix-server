@@ -74,3 +74,37 @@ export const markAllAsReadNotifications = async (
 		res.status(500).json({ isError: true, message: "Internal server error" });
 	}
 };
+
+export const deleteNotifications = async (req: Request, res: Response) => {
+	try {
+		const userId = req.user?._id;
+		if (!userId) {
+			return res.status(500).json({
+				isError: true,
+				message: "Internal Server Error",
+			});
+		}
+
+		const { ids } = req.body;
+		if (!ids) {
+			return res.status(400).json({
+				isError: true,
+				message: "Notification IDs are required",
+			});
+		}
+
+		const notificationIds = ids.toString().split(",");
+
+		const deleteResult = await NotificationModel.deleteMany({
+			_id: { $in: notificationIds },
+			userId,
+		});
+
+		res.status(200).json({
+			isError: false,
+			message: `${deleteResult.deletedCount} notifications deleted successfully`,
+		});
+	} catch (error) {
+		res.status(500).json({ isError: true, message: "Internal server error" });
+	}
+};

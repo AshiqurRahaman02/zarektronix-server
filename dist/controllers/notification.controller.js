@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markAllAsReadNotifications = exports.markAsReadNotification = exports.getUserNotifications = void 0;
+exports.deleteNotifications = exports.markAllAsReadNotifications = exports.markAsReadNotification = exports.getUserNotifications = void 0;
 const notification_model_1 = __importDefault(require("../models/notification.model"));
 const getUserNotifications = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -82,3 +82,35 @@ const markAllAsReadNotifications = (req, res) => __awaiter(void 0, void 0, void 
     }
 });
 exports.markAllAsReadNotifications = markAllAsReadNotifications;
+const deleteNotifications = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
+    try {
+        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d._id;
+        if (!userId) {
+            return res.status(500).json({
+                isError: true,
+                message: "Internal Server Error",
+            });
+        }
+        const { ids } = req.body;
+        if (!ids) {
+            return res.status(400).json({
+                isError: true,
+                message: "Notification IDs are required",
+            });
+        }
+        const notificationIds = ids.toString().split(",");
+        const deleteResult = yield notification_model_1.default.deleteMany({
+            _id: { $in: notificationIds },
+            userId,
+        });
+        res.status(200).json({
+            isError: false,
+            message: `${deleteResult.deletedCount} notifications deleted successfully`,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ isError: true, message: "Internal server error" });
+    }
+});
+exports.deleteNotifications = deleteNotifications;
